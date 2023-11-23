@@ -1,49 +1,53 @@
 import boto3
-class s3Helper:
-    """Class to have functions in """
+
+
+class S3Helper:
+    """Class to have functions in"""
 
     def __init__(self, token, secret, region):
         self.s3 = boto3.client(
             "s3",
             aws_access_key_id=token,
             aws_secret_access_key=secret,
-            region_name=region
+            region_name=region,
         )
 
-    def createBucket(self, name, acl):
+    def create_bucket(self, name, acl=None):
+        if acl is None:
+            print(
+                "ACL cannot be None; it has to be one of these values: 'private'|'public-read'|'public-read-write'|'authenticated-read'"
+            )
+            return
+
         try:
             self.s3.create_bucket(
                 ACL=acl,
                 Bucket=name,
             )
         except Exception as e:
-            print(f"Sorry there was an error : {e}")
+            print(f"Sorry, there was an error: {e}")
         else:
-            print("Bucket {name} was created su"cess)ully !
-    
-    def listBucket(self):
-        buckets = self.s3.buckets.all()
-        for bucket in buckets:
-            print(bucket.name)  
-    
-    def upload(self, path, bucket, objectName=None):
-        if objectName is None:
-            objectName = path.split('/')[-1]
-        self.s3.upload_file(path, bucket, objectName)
-        print("File was uploaded to the bucket successfully")
-              
-            
-    def delete(self, bucket_name, object_keys):
-        bucket = self.s3.Bucket(bucket_name)
-        for object_key in object_keys:
-            obj = bucket.Object(object_key)
-            obj.delete()
+            print(f"Bucket {name} was created successfully!")
 
+    def list_buckets(self):
+        response = self.s3.list_buckets()
+        return [bucket["Name"] for bucket in response["Buckets"]]
 
-"""
-2. Create a Java program to create a bucket in three regions of your choice.
-(a) Explain in detail the steps involved, and explain the output.
-3. Create a Java program that lists your buckets in the region of your choice.
-4. Create a Java program to upload objects in your newly created bucket.
-5. Create a Java program to delete a particular objects from your newly
-created bucket."""
+    def upload(self, path, bucket, object_name):
+        if object_name is None:
+            object_name = path.split("/")[-1]
+        try:
+            self.s3.upload_file(path, bucket, object_name)
+            print("File was uploaded to the bucket successfully")
+        except Exception as e:
+            print(f"Sorry, there was an error uploading the file: {e}")
+
+    def delete_objects(self, bucket_name, object_keys):
+        try:
+            self.s3.delete_objects(
+                Bucket=bucket_name,
+                Delete={"Objects": [{"Key": key} for key in object_keys]},
+            )
+            print("Objects deleted successfully")
+        except Exception as e:
+            print(f"Sorry, there was an error deleting objects: {e}")
