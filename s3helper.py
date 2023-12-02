@@ -51,3 +51,10 @@ class S3Helper:
             print("Objects deleted successfully")
         except Exception as e:
             print(f"Sorry, there was an error deleting objects: {e}")
+
+    def download(self, local_path, bucket_name, object_key):
+        try:
+            self.s3.download_file(bucket_name, object_key, local_path)
+            print(f"File '{object_key}' downloaded to '{local_path}' successfully")
+        except Exception as e:
+            print(f"Sorry, there was an error downloading the file: {e}")
